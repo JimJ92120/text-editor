@@ -8,6 +8,7 @@ pub struct State {
     current_file_path_name: String,
     is_running: bool,
     content: String,
+    prompt: String,
 }
 
 impl State {
@@ -16,6 +17,7 @@ impl State {
             current_file_path_name,
             content,
             is_running: false,
+            prompt: String::new(),
         }
     }
 
@@ -24,6 +26,7 @@ impl State {
             "content" => Box::new(self.content.clone()) as Box<dyn Any>,
             "is_running" => Box::new(self.is_running.clone()) as Box<dyn Any>,
             "current_file_path_name" => Box::new(self.current_file_path_name.clone()) as Box<dyn Any>,
+            "prompt" => Box::new(self.prompt.clone()) as Box<dyn Any>,
 
             _ => panic!("`{}` field doesn't exist.", field),
         };
@@ -38,7 +41,7 @@ impl State {
         if self.is_running {
             return Err(Error::new(
                 ErrorKind::Other,
-                String::from("View is already running.")
+                String::from("View is already running.\n")
             ));
         }
 
@@ -51,7 +54,7 @@ impl State {
         if !self.is_running {
             return Err(Error::new(
                 ErrorKind::Other,
-                String::from("View is not running.")
+                String::from("View is not running.\n")
             ));
         }
 
@@ -76,6 +79,18 @@ impl State {
         if !self.content.is_empty() {
             self.content.pop();
         }
+
+        Ok(())
+    }
+
+    pub fn prompt(&mut self, content: String) -> Result<()> {
+        self.prompt = content;
+
+        Ok(())
+    }
+
+    pub fn clear_prompt(&mut self) -> Result<()> {
+        self.prompt = String::new();
 
         Ok(())
     }

@@ -91,10 +91,13 @@ impl App {
                     let current_file_path_name = self.state.get::<String>("current_file_path_name");
 
                     if !current_file_path_name.is_empty() {
-                        return self.controller.save_file(
-                            current_file_path_name,
+                        match self.controller.save_file(
+                            current_file_path_name.clone(),
                             self.state.get::<String>("content")
-                        );
+                        ) {
+                            Ok(_) => self.state.prompt(format!("`{}` changes saved.", current_file_path_name)),
+                            Err(error) => Err(error),
+                        }
                     } else {
                         panic!("no file path found");
                     }
@@ -120,8 +123,9 @@ impl App {
     fn render(&mut self) -> Result<()> {
         self.buffer.clear()?;
 
-        self.render_commands()?;
-        self.render_content()?; // render commands to keep cursor after content
+        self.render_footer()?;
+        // render content at last to move cursor to content last char
+        self.render_content()?;      
 
         Ok(())
     }
@@ -130,20 +134,30 @@ impl App {
         self.buffer.write_at(
             [0, 0],
             self.state.get::<String>("content"),
-        )?;
-
-        Ok(())
+        )
     }
 
-    fn render_commands(&mut self) -> Result<()> {
+    fn render_footer(&mut self) -> Result<()> {
         let terminal_size = self.buffer.get::<[u16; 2]>("terminal_size");
 
-        // show if 5 rows minimum
-        if 5 <= terminal_size[1] {
+        if 5 >= terminal_size[1] {
+            return Ok(());
+        }
+
+        let commands_offset: u16 = 2;
+        self.buffer.write_at(
+            [0, terminal_size[1] - commands_offset],
+            String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
+        )?;
+        
+        let prompt = self.state.get::<String>("prompt");
+        if !prompt.is_empty() {
             self.buffer.write_at(
-                [0, terminal_size[1] - 2],
-                String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
+                [0, terminal_size[1] - commands_offset + 1],
+                prompt
             )?;
+
+            self.state.clear_prompt()?;
         }
 
         Ok(())

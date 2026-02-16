@@ -51,7 +51,7 @@ impl Controller {
         if !path.is_file() {
             return Err(Error::new(
                 ErrorKind::Other,
-                format!("`{}` is not a file.", path_name)
+                format!("`{}` is not a file.\n", path_name)
             ));
         }
 
