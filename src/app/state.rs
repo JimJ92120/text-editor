@@ -7,13 +7,13 @@ use std::{
 pub struct State {
     current_file_path_name: String,
     is_running: bool,
-    content: String,
+    content: Vec<String>,
     prompt: String,
     terminal_size: [u16; 2],
 }
 
 impl State {
-    pub fn new(current_file_path_name: String, content: String, terminal_size: [u16; 2]) -> Self {
+    pub fn new(current_file_path_name: String, content: Vec<String>, terminal_size: [u16; 2]) -> Self {
         Self {
             current_file_path_name,
             content,
@@ -67,13 +67,19 @@ impl State {
     }
 
     pub fn edit(&mut self, character: char) -> Result<()> {
-        self.content.push(character);
+        if !self.content.is_empty() {
+            let last_line_index = self.content.clone().len() - 1;
+
+            self.content[last_line_index].push(character);
+        } else {
+            self.content.push(character.to_string());
+        }
 
         Ok(())
     }
 
     pub fn add_line_break(&mut self) -> Result<()> {
-        self.content.push_str("\n");
+        self.content.push(String::new());
 
         Ok(())
     }

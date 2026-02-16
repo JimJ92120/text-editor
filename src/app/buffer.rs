@@ -39,27 +39,14 @@ impl Buffer {
         Ok(())
     }
 
-    pub fn write_at(&mut self, position: [u16; 2], content: String) -> Result<()> {
-        let lines = content.lines();
-        let lines_count = lines.clone().count();
+    pub fn write_at(&mut self, position: [u16; 2], content: Vec<String>) -> Result<()> {
+        let lines_count = content.len();
         
-        if 0 < lines_count {
-            for (line_index, line_content) in lines.clone().enumerate() {
-                self.move_to([
-                    position[0],
-                    position[1] + (line_index as u16)
-                ])?;
-                write!(self.stdout, "{}", line_content)?;
-            }
-        } else {
-            self.move_to(position)?;
-        }
-
-        if content.ends_with('\n') {
-            self.move_to([
-                position[0],
-                (lines_count as u16)
-            ])?;
+        self.move_to(position)?;
+        
+        for (line_index, line_content) in content.iter().enumerate() {
+            self.move_to([0, position[1] + (line_index as u16)])?;
+            write!(self.stdout, "{}", line_content)?;
         }
 
         self.stdout.flush()?;

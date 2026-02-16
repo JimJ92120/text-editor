@@ -39,7 +39,17 @@ impl App {
     pub fn new(current_file_path_name: String) -> Self {
         let controller = Controller::new();
         let content = match controller.get_file_content(current_file_path_name.clone()) {
-            Ok(content) => content,
+            Ok(content) => {
+                let mut lines = content.lines()
+                    .map(|line| line.trim().to_string())
+                    .collect::<Vec<String>>();
+
+                if content.ends_with("\n") {
+                    lines.push(String::new());
+                }
+
+                lines
+            },
             Err(error) => panic!("{}", error),
         };
 
@@ -100,7 +110,7 @@ impl App {
                     if !current_file_path_name.is_empty() {
                         match self.controller.save_file(
                             current_file_path_name.clone(),
-                            self.state.get::<String>("content")
+                            self.state.get::<Vec<String>>("content").join("\n")
                         ) {
                             Ok(_) => self.state.prompt(format!("`{}` changes saved.", current_file_path_name)),
                             Err(error) => Err(error),
@@ -136,7 +146,7 @@ impl App {
     fn render_content(&mut self) -> Result<()> {
         self.buffer.write_at(
             [0, 0],
-            self.state.get::<String>("content"),
+            self.state.get::<Vec<String>>("content"),
         )
     }
 
@@ -147,21 +157,23 @@ impl App {
             return Ok(());
         }
 
-        let commands_offset: u16 = 2;
-        self.buffer.write_at(
-            [0, terminal_size[1] - commands_offset],
+        let mut content = vec![
             String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
-        )?;
-        
+        ];
+        let footer_offset = 3;
         let prompt = self.state.get::<String>("prompt");
+
         if !prompt.is_empty() {
-            self.buffer.write_at(
-                [0, terminal_size[1] - commands_offset + 1],
-                prompt
-            )?;
+            content.push(prompt);
 
             self.state.clear_prompt()?;
         }
+
+        self.buffer.write_at(
+            [0, terminal_size[1] - footer_offset],
+            content
+        )?;
+        
 
         Ok(())
     }
