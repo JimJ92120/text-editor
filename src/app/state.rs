@@ -109,9 +109,19 @@ impl State {
     }
 
     pub fn add_line_break(&mut self) -> Result<()> {
-        self.content.push(String::new());
+        let current_line = self.content[self.cursor_position[1] as usize].clone();
 
-        self.cursor_position[0] = 0;
+        if 0 == current_line.len() {
+            self.content.insert(self.cursor_position[1] as usize, String::new());
+            self.cursor_position[0] = 0;
+        } else {
+            let (before, after) = current_line.split_at(self.cursor_position[0] as usize);
+
+            self.content[self.cursor_position[1] as usize] = before.to_string();
+            self.content.insert(self.cursor_position[1] as usize + 1, after.to_string());
+            self.cursor_position[0] = after.len() as u16;
+        }
+
         self.cursor_position[1] += 1;
 
         Ok(())
