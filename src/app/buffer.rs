@@ -1,5 +1,6 @@
 use std::{
     io::{ Result, Write, Stdout },
+    any::{ Any }
 };
 
 use crossterm::{
@@ -27,12 +28,26 @@ impl Buffer {
         }
     }
 
+    pub fn get<T: Clone + 'static>(&self, field: &str) -> T {
+        let result = match field {
+            "terminal_size" => Box::new(self.terminal_size.clone()) as Box<dyn Any>,
+
+            _ => panic!("`{}` field doesn't exist.", field),
+        };
+
+        result
+            .downcast_ref::<T>()
+            .unwrap()
+            .clone()
+    }
+
     pub fn start(&mut self) -> Result<()> {
         self.clear()?;
 
         Ok(())
     }
     pub fn stop(&mut self) -> Result<()> {
+        self.clear()?;
         self.move_to(self.terminal_size)?;
         
         Ok(())

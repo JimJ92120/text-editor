@@ -47,7 +47,7 @@ impl App {
         self.start()?;
 
         while self.state.get::<bool>("is_running") {
-            self.render_content()?;
+            self.render()?;
             self.watch_events()?;
         }
 
@@ -65,12 +65,6 @@ impl App {
 
     fn start(&mut self) -> Result<()> {
         self.buffer.start()?;
-        self.buffer.clear()?;
-
-        self.buffer.write_to(BufferLine {
-            position: [0, 0],
-            content: String::from("starting...\n"),
-        })?;
 
         enable_raw_mode()?;
 
@@ -79,12 +73,6 @@ impl App {
 
     fn stop(&mut self) -> Result<()> {
         self.buffer.stop()?;
-        self.buffer.clear()?;
-
-        self.buffer.write_to(BufferLine {
-            position: [0, 0],
-            content: String::from("stopping...\n"),
-        })?;
 
         disable_raw_mode()?;
 
@@ -105,7 +93,6 @@ impl App {
         }
 
         match event.code {
-            KeyCode::Esc => self.stop(),
             KeyCode::Enter => self.state.add_line_break(),
             KeyCode::Char(character) => self.state.edit(character),
         
@@ -117,12 +104,34 @@ impl App {
         self.buffer.resize(new_size)
     }
 
+    fn render(&mut self) -> Result<()> {
+        self.buffer.clear()?;
+
+        self.render_commands()?;
+        self.render_content()?; // render commands to keep cursor after content
+
+        Ok(())
+    }
+
     fn render_content(&mut self) -> Result<()> {
-        // self.buffer.clear()?;
         self.buffer.write_to(BufferLine {
             position: [0, 0],
             content: self.state.get::<String>("content"),
         })?;
+
+        Ok(())
+    }
+
+    fn render_commands(&mut self) -> Result<()> {
+        let terminal_size = self.buffer.get::<[u16; 2]>("terminal_size");
+
+        // show if 5 rows minimum
+        if 5 <= terminal_size[1] {
+            self.buffer.write_to(BufferLine {
+                position: [0, terminal_size[1] - 2],
+                content: String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
+            })?;
+        }
 
         Ok(())
     }
