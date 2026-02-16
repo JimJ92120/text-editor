@@ -75,7 +75,7 @@ impl Buffer {
                 write!(self.stdout, "{}", line_content)?;
             }
         } else {
-            self.move_to(position);
+            self.move_to(position)?;
         }
 
         if content.ends_with('\n') {
