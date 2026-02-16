@@ -88,7 +88,17 @@ impl State {
 
     pub fn edit(&mut self, character: char) -> Result<()> {
         if !self.content.is_empty() {
-            self.content[self.cursor_position[1] as usize].push(character);
+            let current_line = self.content[self.cursor_position[1] as usize].clone();
+
+            if 0 == current_line.len()
+                || self.cursor_position[0] as usize == current_line.len() - 1
+            {
+                self.content[self.cursor_position[1] as usize].push(character);
+            } else {
+                let (before, after) = current_line.split_at(self.cursor_position[0] as usize);
+
+                self.content[self.cursor_position[1] as usize] = format!("{}{}{}", before, character, after);
+            }
         } else {
             self.content.push(character.to_string());
         }
@@ -134,6 +144,10 @@ impl State {
     }
 
     pub fn move_cursor(&mut self, direction: CursorDirection) -> Result<()> {
+        if self.content.is_empty() {
+            return Ok(());
+        }
+
         let current_position = self.cursor_position;
         let content_length = self.content.len() as u16;
         let mut new_position = current_position.clone();
@@ -143,10 +157,10 @@ impl State {
                 if 0 < current_position[1] {
                     new_position[1] = current_position[1] - 1;
 
-                    let line = &self.content[new_position[1] as usize];
+                    let current_line = &self.content[new_position[1] as usize];
 
-                    new_position[0] = if !line.is_empty() {
-                        line.len() as u16
+                    new_position[0] = if !current_line.is_empty() {
+                        current_line.len() as u16
                     } else {
                         0
                     }
@@ -156,20 +170,28 @@ impl State {
                 if content_length - 1 > current_position[1] {
                     new_position[1] = current_position[1] + 1;
 
-                    let line = &self.content[new_position[1] as usize];
+                    let current_line = &self.content[new_position[1] as usize];
 
-                    new_position[0] = if !line.is_empty() {
-                        line.len() as u16
+                    new_position[0] = if !current_line.is_empty() {
+                        current_line.len() as u16
                     } else {
                         0
                     }
                 }
             },
             CursorDirection::Left => {
-                
+                if 0 < current_position[0] {
+                    new_position[0] -= 1;
+                }
             },
             CursorDirection::Right => {
-                
+                let current_line = &self.content[current_position[1] as usize];
+
+                if !current_line.is_empty()
+                    && current_line.len() - 1 > current_position[0] as usize
+                {
+                    new_position[0] += 1;
+                }
             }
         };
 
