@@ -13,22 +13,32 @@ use crossterm::{
     },
 };
 
+mod controller;
 mod state;
 mod buffer;
 
+use controller::{ Controller };
 use state::{ State };
 use buffer::{ Buffer, BufferLine };
 
 #[derive(Debug)]
 pub struct App {
+    controller: Controller,
     state: State,
     buffer: Buffer,
 }
 
 impl App {
-    pub fn new(content: String) -> Self {
+    pub fn new(current_file_path_name: String) -> Self {
+        let controller = Controller::new();
+        let content = match controller.get_file_content(current_file_path_name.clone()) {
+            Ok(content) => content,
+            Err(error) => panic!("{}", error),
+        };
+
         Self {
-            state: State::new(content),
+            controller,
+            state: State::new(current_file_path_name, content),
             buffer: Buffer::new(stdout(), size().unwrap().into()),
         }
     }
@@ -108,7 +118,7 @@ impl App {
     }
 
     fn render_content(&mut self) -> Result<()> {
-        self.buffer.clear()?;
+        // self.buffer.clear()?;
         self.buffer.write_to(BufferLine {
             position: [0, 0],
             content: self.state.get::<String>("content"),

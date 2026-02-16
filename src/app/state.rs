@@ -5,13 +5,15 @@ use std::{
 
 #[derive(Debug)]
 pub struct State {
+    current_file_path_name: String,
     is_running: bool,
     content: String,
 }
 
 impl State {
-    pub fn new(content: String) -> Self {
+    pub fn new(current_file_path_name: String, content: String) -> Self {
         Self {
+            current_file_path_name,
             content,
             is_running: false,
         }
@@ -21,6 +23,7 @@ impl State {
         let result = match field {
             "content" => Box::new(self.content.clone()) as Box<dyn Any>,
             "is_running" => Box::new(self.is_running.clone()) as Box<dyn Any>,
+            "current_file_path_name" => Box::new(self.current_file_path_name.clone()) as Box<dyn Any>,
 
             _ => panic!("`{}` field doesn't exist.", field),
         };

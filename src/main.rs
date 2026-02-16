@@ -1,13 +1,11 @@
 use std::{
     io::{ Result },
     env,
-    path::{ self }
+    path
 };
 
-mod editor;
 mod app;
 
-use editor::{ Editor };
 use app::{ App };
 
 fn main() -> Result<()> {
@@ -17,26 +15,18 @@ fn main() -> Result<()> {
         panic!("Too many arguments. Try `cargo run $ARG` or `cargo run`\n");
     }
 
-    let editor = match args.len() {
-        1 => {
-            println!("new file");
-            
-            Editor::new(None)
-        },
+    let file_name = match args.len() {
+        1 => String::new(),
         2 => {
-            println!("edit {}", &args[1]);
-
             let file_path = path::absolute(&args[1])?;
 
-            Editor::new(Some(file_path.display().to_string()))
+            file_path.display().to_string()
         },
 
         _ => panic!("Too many arguments. Try `cargo run $ARG` or `cargo run`\n"),
     };
-    println!("editor: {:?}", editor);
     
-    let mut app = App::new(editor.get::<String>("content"));
-
+    let mut app = App::new(file_name);
     app.run()?;
 
     Ok(())
