@@ -18,15 +18,8 @@ mod state;
 mod buffer;
 
 use controller::{ Controller };
-use state::{ State };
+use state::{ State, CursorDirection };
 use buffer::{ Buffer };
-
-enum CursorDirection {
-    Up,
-    Down,
-    Left,
-    Right,
-}
 
 #[derive(Debug)]
 pub struct App {
@@ -65,6 +58,7 @@ impl App {
 
         while self.state.get::<bool>("is_running") {
             self.render()?;
+            self.buffer.move_to(self.state.get::<[u16; 2]>("cursor_position"))?;
             self.watch_events()?;
         }
 
@@ -128,6 +122,11 @@ impl App {
             KeyCode::Enter => self.state.add_line_break(),
             KeyCode::Backspace => self.state.delete_last_character(),
             KeyCode::Char(character) => self.state.edit(character),
+
+            KeyCode::Up => self.state.move_cursor(CursorDirection::Up),
+            KeyCode::Down => self.state.move_cursor(CursorDirection::Down),
+            KeyCode::Left => self.state.move_cursor(CursorDirection::Left),
+            KeyCode::Right => self.state.move_cursor(CursorDirection::Right),
         
             _ => Ok(())
         }
@@ -158,6 +157,7 @@ impl App {
         }
 
         let mut content = vec![
+            format!("cursor at {:?}", self.state.get::<[u16; 2]>("cursor_position")),
             String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
         ];
         let footer_offset = 3;

@@ -40,8 +40,6 @@ impl Buffer {
     }
 
     pub fn write_at(&mut self, position: [u16; 2], content: Vec<String>) -> Result<()> {
-        let lines_count = content.len();
-        
         self.move_to(position)?;
         
         for (line_index, line_content) in content.iter().enumerate() {
