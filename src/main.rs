@@ -5,10 +5,10 @@ use std::{
 };
 
 mod editor;
-mod view;
+mod app;
 
 use editor::{ Editor };
-use view::{ View };
+use app::{ App };
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -35,9 +35,9 @@ fn main() -> Result<()> {
     };
     println!("editor: {:?}", editor);
     
-    let mut view = View::new(editor.get::<String>("content"));
+    let mut app = App::new(editor.get::<String>("content"));
 
-    view.run()?;
+    app.run()?;
 
     Ok(())
 }

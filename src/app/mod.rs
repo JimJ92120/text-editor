@@ -20,12 +20,12 @@ use state::{ State };
 use buffer::{ Buffer, BufferLine };
 
 #[derive(Debug)]
-pub struct View {
+pub struct App {
     state: State,
     buffer: Buffer,
 }
 
-impl View {
+impl App {
     pub fn new(content: String) -> Self {
         Self {
             state: State::new(content),
