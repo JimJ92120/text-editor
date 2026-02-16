@@ -15,6 +15,7 @@ A text editor TUI in `rust`.
 
 - undo / redo
 - new file
+- scroll content if content size is greater than terminal height
 
 ---
 
