@@ -7,7 +7,7 @@ A text editor TUI in `rust`.
 ## usage
 
 1. run the prorgam `cargo run /path/to/file` (development)
-2. edit the file content
+2. edit the file content, move with keyboard arrows to navigate the content, use `ENTER` for line breaks
 3. use `CTRL + S` to save changes
 4. use `CTRL + Q` to quit
 
