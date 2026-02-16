@@ -9,15 +9,17 @@ pub struct State {
     is_running: bool,
     content: String,
     prompt: String,
+    terminal_size: [u16; 2],
 }
 
 impl State {
-    pub fn new(current_file_path_name: String, content: String) -> Self {
+    pub fn new(current_file_path_name: String, content: String, terminal_size: [u16; 2]) -> Self {
         Self {
             current_file_path_name,
             content,
             is_running: false,
             prompt: String::new(),
+            terminal_size,
         }
     }
 
@@ -27,6 +29,7 @@ impl State {
             "is_running" => Box::new(self.is_running.clone()) as Box<dyn Any>,
             "current_file_path_name" => Box::new(self.current_file_path_name.clone()) as Box<dyn Any>,
             "prompt" => Box::new(self.prompt.clone()) as Box<dyn Any>,
+            "terminal_size" => Box::new(self.terminal_size.clone()) as Box<dyn Any>,
 
             _ => panic!("`{}` field doesn't exist.", field),
         };
@@ -91,6 +94,12 @@ impl State {
 
     pub fn clear_prompt(&mut self) -> Result<()> {
         self.prompt = String::new();
+
+        Ok(())
+    }
+
+    pub fn resize(&mut self, new_size: [u16; 2]) -> Result<()> {
+        self.terminal_size = new_size;
 
         Ok(())
     }

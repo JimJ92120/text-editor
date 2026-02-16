@@ -21,6 +21,13 @@ use controller::{ Controller };
 use state::{ State };
 use buffer::{ Buffer };
 
+enum CursorDirection {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
 #[derive(Debug)]
 pub struct App {
     controller: Controller,
@@ -38,8 +45,8 @@ impl App {
 
         Self {
             controller,
-            state: State::new(current_file_path_name, content),
-            buffer: Buffer::new(stdout(), size().unwrap().into()),
+            state: State::new(current_file_path_name, content, size().unwrap().into()),
+            buffer: Buffer::new(stdout()),
         }
     }
 
@@ -57,7 +64,7 @@ impl App {
     fn watch_events(&mut self) -> Result<()> {
         match event::read() {
             Ok(Event::Key(event)) => self.on_keyboard_events(event),
-            Ok(Event::Resize(columns, rows)) => self.on_resize([columns, rows]),
+            Ok(Event::Resize(columns, rows)) => self.state.resize([columns, rows]),
 
             _ => Ok(()),
         }
@@ -116,10 +123,6 @@ impl App {
         }
     }
 
-    fn on_resize(&mut self, new_size: [u16; 2]) -> Result<()> {
-        self.buffer.resize(new_size)
-    }
-
     fn render(&mut self) -> Result<()> {
         self.buffer.clear()?;
 
@@ -138,7 +141,7 @@ impl App {
     }
 
     fn render_footer(&mut self) -> Result<()> {
-        let terminal_size = self.buffer.get::<[u16; 2]>("terminal_size");
+        let terminal_size = self.state.get::<[u16; 2]>("terminal_size");
 
         if 5 >= terminal_size[1] {
             return Ok(());
