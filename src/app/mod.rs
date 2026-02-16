@@ -87,6 +87,18 @@ impl App {
         if event.modifiers.contains(KeyModifiers::CONTROL) {
             return match event.code {
                 KeyCode::Char('q') => self.stop(),
+                KeyCode::Char('s') => {
+                    let current_file_path_name = self.state.get::<String>("current_file_path_name");
+
+                    if !current_file_path_name.is_empty() {
+                        return self.controller.save_file(
+                            current_file_path_name,
+                            self.state.get::<String>("content")
+                        );
+                    } else {
+                        panic!("no file path found");
+                    }
+                },
             
                 _ => Ok(())
             };

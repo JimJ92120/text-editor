@@ -20,6 +20,34 @@ impl Controller {
     pub fn get_file_content(&self, path_name: String) -> Result<String> {
         let path = Path::new(&path_name);
 
+        self.verify_file(path)?;
+
+        match fs::read_to_string(path) {
+            Ok(content) => Ok(content),
+            Err(error) => Err(Error::new(
+                ErrorKind::Other,
+                format!("Unable to read `{}` content.\n{}\n", path_name, error)
+            )),
+        }
+    }
+
+    pub fn save_file(&self, path_name: String, content: String) -> Result<()> {
+        let path = Path::new(&path_name);
+
+        self.verify_file(path)?;
+
+        match fs::write(path, content) {
+            Ok(_) => Ok(()),
+            Err(error) => Err(Error::new(
+                ErrorKind::Other,
+                format!("Unable to write to `{}`.\n{}", path_name.clone(), error)
+            )),
+        }
+    }
+
+    fn verify_file(&self, path: &Path) -> Result<()> {
+        let path_name = path.display().to_string();
+
         if !path.is_file() {
             return Err(Error::new(
                 ErrorKind::Other,
@@ -41,13 +69,7 @@ impl Controller {
             ));
         }
 
-        match fs::read_to_string(path) {
-            Ok(content) => Ok(content),
-            Err(error) => Err(Error::new(
-                ErrorKind::Other,
-                format!("Unable to read `{}` content.\n{}\n", path_name, error)
-            )),
-        }
+        Ok(())
     }
 
     fn can_read(&self, permissions_mode: u32) -> bool {
