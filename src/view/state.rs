@@ -1,9 +1,6 @@
 use std::{
     io::{ Error, ErrorKind, Result }
 };
-use crossterm::{
-    terminal,
-};
 
 #[derive(Debug)]
 pub struct State {
@@ -31,8 +28,6 @@ impl State {
             ));
         }
 
-        terminal::enable_raw_mode()?;
-
         self.is_running = true;
 
         Ok(())
@@ -47,8 +42,6 @@ impl State {
                 String::from("View is not running.")
             ));
         }
-
-        terminal::disable_raw_mode()?;
 
         self.is_running = false;
 

@@ -2,6 +2,7 @@ use std::{
     io::{ Result }
 };
 use crossterm::{
+    terminal,
     event::{
         self,
         Event,
@@ -28,7 +29,7 @@ impl View {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        self.state.start()?;
+        self.start()?;
 
         while self.state.is_running() {
             self.watch_events()?;
@@ -45,13 +46,13 @@ impl View {
 
             if key_event.modifiers.contains(KeyModifiers::CONTROL) {
                 return match key_event.code {
-                    KeyCode::Char('q') => self.state.stop(),
+                    KeyCode::Char('q') => self.stop(),
                 
                     _ => Ok(())
                 };
             } else {
                 return match key_event.code {
-                    KeyCode::Esc => self.state.stop(),
+                    KeyCode::Esc => self.stop(),
                 
                     _ => Ok(())
                 };
@@ -59,5 +60,17 @@ impl View {
         }
 
         Ok(())
+    }
+
+    fn start(&mut self) -> Result<()> {
+        terminal::enable_raw_mode()?;
+
+        self.state.start()
+    }
+
+    fn stop(&mut self) -> Result<()> {
+        terminal::disable_raw_mode()?;
+
+        self.state.stop()
     }
 }
