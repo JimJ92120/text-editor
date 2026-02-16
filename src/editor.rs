@@ -1,5 +1,6 @@
 use std::{
     io::{ Error, ErrorKind, Result },
+    any::{ Any },
     fs::{ self, metadata },
     path::{ Path },
     os::{
@@ -30,6 +31,20 @@ impl Editor {
                 content: String::new()
             },
         }
+    }
+
+    pub fn get<T: Clone + 'static>(&self, field: &str) -> T {
+        let result = match field {
+            "content" => Box::new(self.content.clone()) as Box<dyn Any>,
+            "current_path_name" => Box::new(self.current_path_name.clone()) as Box<dyn Any>,
+
+            _ => panic!("`{}` field doesn't exist.", field),
+        } as Box<dyn Any>;
+
+        result
+            .downcast_ref::<T>()
+            .unwrap()
+            .clone()
     }
 
     fn get_file_content(path_name: &str) -> Result<String> {

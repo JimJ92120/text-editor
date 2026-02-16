@@ -1,26 +1,37 @@
 use std::{
-    io::{ Error, ErrorKind, Result }
+    io::{ Error, ErrorKind, Result },
+    any::{ Any },
 };
 
 #[derive(Debug)]
 pub struct State {
     is_running: bool,
+    content: String,
 }
 
 impl State {
-    pub fn new() -> Self {
+    pub fn new(content: String) -> Self {
         Self {
+            content,
             is_running: false,
         }
     }
 
-    pub fn is_running(&self) -> bool {
-        self.is_running
+    pub fn get<T: Clone + 'static>(&self, field: &str) -> T {
+        let result = match field {
+            "content" => Box::new(self.content.clone()) as Box<dyn Any>,
+            "is_running" => Box::new(self.is_running.clone()) as Box<dyn Any>,
+
+            _ => panic!("`{}` field doesn't exist.", field),
+        };
+
+        result
+            .downcast_ref::<T>()
+            .unwrap()
+            .clone()
     }
 
     pub fn start(&mut self) -> Result<()> {
-        println!("starting...");
-
         if self.is_running {
             return Err(Error::new(
                 ErrorKind::Other,
@@ -34,8 +45,6 @@ impl State {
     }
 
     pub fn stop(&mut self) -> Result<()> {
-        println!("stopping...");
-
         if !self.is_running {
             return Err(Error::new(
                 ErrorKind::Other,

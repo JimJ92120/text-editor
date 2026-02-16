@@ -1,37 +1,43 @@
 use std::{
-    io::{ Result }
+    io::{ stdout, Result }
 };
 use crossterm::{
-    terminal,
+    terminal::{ size, enable_raw_mode, disable_raw_mode },
     event::{
         self,
         Event,
+        KeyEvent,
         KeyCode,
         KeyEventKind,
         KeyModifiers,
-    }
+    },
 };
 
 mod state;
+mod buffer;
 
 use state::{ State };
+use buffer::{ Buffer, BufferLine };
 
 #[derive(Debug)]
 pub struct View {
     state: State,
+    buffer: Buffer,
 }
 
 impl View {
-    pub fn new() -> Self {
+    pub fn new(content: String) -> Self {
         Self {
-            state: State::new(),
+            state: State::new(content),
+            buffer: Buffer::new(stdout(), size().unwrap().into()),
         }
     }
 
     pub fn run(&mut self) -> Result<()> {
         self.start()?;
+        self.render_content()?;
 
-        while self.state.is_running() {
+        while self.state.get::<bool>("is_running") {
             self.watch_events()?;
         }
 
@@ -39,38 +45,73 @@ impl View {
     }
 
     fn watch_events(&mut self) -> Result<()> {
-        if let Event::Key(key_event) = event::read()? {
-            if KeyEventKind::Press != key_event.kind {
-                return Ok(());
-            }
+        match event::read() {
+            Ok(Event::Key(event)) => self.on_keyboard_events(event),
+            Ok(Event::Resize(columns, rows)) => self.on_resize([columns, rows]),
 
-            if key_event.modifiers.contains(KeyModifiers::CONTROL) {
-                return match key_event.code {
-                    KeyCode::Char('q') => self.stop(),
-                
-                    _ => Ok(())
-                };
-            } else {
-                return match key_event.code {
-                    KeyCode::Esc => self.stop(),
-                
-                    _ => Ok(())
-                };
-            }
+            _ => Ok(()),
         }
-
-        Ok(())
     }
 
     fn start(&mut self) -> Result<()> {
-        terminal::enable_raw_mode()?;
+        self.buffer.start()?;
+        self.buffer.clear()?;
+
+        self.buffer.write_to(BufferLine {
+            position: [0, 0],
+            content: "starting...\n"
+        })?;
+
+        enable_raw_mode()?;
 
         self.state.start()
     }
 
     fn stop(&mut self) -> Result<()> {
-        terminal::disable_raw_mode()?;
+        self.buffer.stop()?;
+        self.buffer.clear()?;
+
+        self.buffer.write_to(BufferLine {
+            position: [0, 0],
+            content: "stopping..."
+        })?;
+
+        disable_raw_mode()?;
 
         self.state.stop()
+    }
+
+    fn on_keyboard_events(&mut self, event: KeyEvent) -> Result<()> {
+        if KeyEventKind::Press != event.kind {
+            return Ok(());
+        }
+
+        if event.modifiers.contains(KeyModifiers::CONTROL) {
+            return match event.code {
+                KeyCode::Char('q') => self.stop(),
+            
+                _ => Ok(())
+            };
+        }
+
+        match event.code {
+            KeyCode::Esc => self.stop(),
+        
+            _ => Ok(())
+        }
+    }
+
+    fn on_resize(&mut self, new_size: [u16; 2]) -> Result<()> {
+        self.buffer.resize(new_size)
+    }
+
+    fn render_content(&mut self) -> Result<()> {
+        self.buffer.clear()?;
+        self.buffer.write_to(BufferLine {
+            position: [0, 0],
+            content: &self.state.get::<String>("content"),
+        })?;
+
+        Ok(())
     }
 }

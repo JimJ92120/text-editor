@@ -35,8 +35,7 @@ fn main() -> Result<()> {
     };
     println!("editor: {:?}", editor);
     
-    let mut view = View::new();
-    println!("view: {:?}", view);
+    let mut view = View::new(editor.get::<String>("content"));
 
     view.run()?;
 
