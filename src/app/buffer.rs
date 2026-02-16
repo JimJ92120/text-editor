@@ -66,12 +66,16 @@ impl Buffer {
         let lines = content.lines();
         let lines_count = lines.clone().count();
         
-        for (line_index, line_content) in lines.clone().enumerate() {
-            self.move_to([
-                position[0],
-                position[1] + (line_index as u16)
-            ])?;
-            write!(self.stdout, "{}", line_content)?;
+        if 0 < lines_count {
+            for (line_index, line_content) in lines.clone().enumerate() {
+                self.move_to([
+                    position[0],
+                    position[1] + (line_index as u16)
+                ])?;
+                write!(self.stdout, "{}", line_content)?;
+            }
+        } else {
+            self.move_to(position);
         }
 
         if content.ends_with('\n') {
