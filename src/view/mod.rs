@@ -35,9 +35,9 @@ impl View {
 
     pub fn run(&mut self) -> Result<()> {
         self.start()?;
-        self.render_content()?;
 
         while self.state.get::<bool>("is_running") {
+            self.render_content()?;
             self.watch_events()?;
         }
 
@@ -59,7 +59,7 @@ impl View {
 
         self.buffer.write_to(BufferLine {
             position: [0, 0],
-            content: "starting...\n"
+            content: String::from("starting...\n"),
         })?;
 
         enable_raw_mode()?;
@@ -73,7 +73,7 @@ impl View {
 
         self.buffer.write_to(BufferLine {
             position: [0, 0],
-            content: "stopping..."
+            content: String::from("stopping...\n"),
         })?;
 
         disable_raw_mode()?;
@@ -96,6 +96,8 @@ impl View {
 
         match event.code {
             KeyCode::Esc => self.stop(),
+            KeyCode::Enter => self.state.add_line_break(),
+            KeyCode::Char(character) => self.state.edit(character),
         
             _ => Ok(())
         }
@@ -109,7 +111,7 @@ impl View {
         self.buffer.clear()?;
         self.buffer.write_to(BufferLine {
             position: [0, 0],
-            content: &self.state.get::<String>("content"),
+            content: self.state.get::<String>("content"),
         })?;
 
         Ok(())

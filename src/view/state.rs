@@ -56,4 +56,16 @@ impl State {
 
         Ok(())
     }
+
+    pub fn edit(&mut self, character: char) -> Result<()> {
+        self.content.push(character);
+
+        Ok(())
+    }
+
+    pub fn add_line_break(&mut self) -> Result<()> {
+        self.content.push_str("\n");
+
+        Ok(())
+    }
 }

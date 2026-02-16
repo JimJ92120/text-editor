@@ -8,9 +8,9 @@ use crossterm::{
     execute,
 };
 
-pub struct BufferLine<'a> {
+pub struct BufferLine {
     pub position: [u16; 2],
-    pub content: &'a str,
+    pub content: String,
 }
 
 #[derive(Debug)]
@@ -40,6 +40,8 @@ impl Buffer {
 
     pub fn clear(&mut self) -> Result<()> {
         execute!(self.stdout, Clear(ClearType::All))?;
+        execute!(self.stdout, Clear(ClearType::Purge))?;
+        self.move_to([0, 0])?;
 
         Ok(())
     }
@@ -52,6 +54,8 @@ impl Buffer {
 
     pub fn write_to(&mut self, line: BufferLine) -> Result<()> {
         let lines = line.content.lines();
+        let lines_count = lines.clone().count();
+        
         for (index, content) in lines.clone().enumerate() {
             self.move_to([
                 line.position[0],
@@ -60,11 +64,14 @@ impl Buffer {
             write!(self.stdout, "{}",content)?;
         }
 
+        if line.content.ends_with('\n') {
+            self.move_to([
+                line.position[0],
+                (lines_count as u16)
+            ])?;
+        }
+
         self.stdout.flush()?;
-        self.move_to([
-            line.position[0],
-            line.position[1] + (lines.count() as u16)
-        ])?;
 
         Ok(())
     }
