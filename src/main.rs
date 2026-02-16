@@ -1,15 +1,14 @@
 use std::{
-    io::{ stdout, Result },
+    io::{ Result },
     env,
     path::{ self }
 };
-use crossterm::{
-    terminal
-};
 
 mod editor;
+mod view;
 
 use editor::{ Editor };
+use view::{ View };
 
 fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -34,8 +33,12 @@ fn main() -> Result<()> {
 
         _ => panic!("Too many arguments. Try `cargo run $ARG` or `cargo run`\n"),
     };
-
     println!("editor: {:?}", editor);
+    
+    let mut view = View::new();
+    println!("view: {:?}", view);
+
+    view.run()?;
 
     Ok(())
 }
