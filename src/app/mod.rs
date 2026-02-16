@@ -19,7 +19,7 @@ mod buffer;
 
 use controller::{ Controller };
 use state::{ State };
-use buffer::{ Buffer, BufferLine };
+use buffer::{ Buffer };
 
 #[derive(Debug)]
 pub struct App {
@@ -115,10 +115,10 @@ impl App {
     }
 
     fn render_content(&mut self) -> Result<()> {
-        self.buffer.write_to(BufferLine {
-            position: [0, 0],
-            content: self.state.get::<String>("content"),
-        })?;
+        self.buffer.write_at(
+            [0, 0],
+            self.state.get::<String>("content"),
+        )?;
 
         Ok(())
     }
@@ -128,10 +128,10 @@ impl App {
 
         // show if 5 rows minimum
         if 5 <= terminal_size[1] {
-            self.buffer.write_to(BufferLine {
-                position: [0, terminal_size[1] - 2],
-                content: String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
-            })?;
+            self.buffer.write_at(
+                [0, terminal_size[1] - 2],
+                String::from("[ CTRL + S: save ][ CTRL + Q: quit ]")
+            )?;
         }
 
         Ok(())

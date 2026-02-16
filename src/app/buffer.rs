@@ -9,11 +9,6 @@ use crossterm::{
     execute,
 };
 
-pub struct BufferLine {
-    pub position: [u16; 2],
-    pub content: String,
-}
-
 #[derive(Debug)]
 pub struct Buffer {
     stdout: Stdout,
@@ -67,21 +62,21 @@ impl Buffer {
         Ok(())
     }
 
-    pub fn write_to(&mut self, line: BufferLine) -> Result<()> {
-        let lines = line.content.lines();
+    pub fn write_at(&mut self, position: [u16; 2], content: String) -> Result<()> {
+        let lines = content.lines();
         let lines_count = lines.clone().count();
         
-        for (index, content) in lines.clone().enumerate() {
+        for (line_index, line_content) in lines.clone().enumerate() {
             self.move_to([
-                line.position[0],
-                line.position[1] + (index as u16)
+                position[0],
+                position[1] + (line_index as u16)
             ])?;
-            write!(self.stdout, "{}",content)?;
+            write!(self.stdout, "{}", line_content)?;
         }
 
-        if line.content.ends_with('\n') {
+        if content.ends_with('\n') {
             self.move_to([
-                line.position[0],
+                position[0],
                 (lines_count as u16)
             ])?;
         }
