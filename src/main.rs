@@ -1,5 +1,5 @@
 use std::{
-    io::{ Result },
+    io::{ Result, Error, ErrorKind },
     env,
     path
 };
@@ -12,19 +12,20 @@ fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if 2 < args.len() {
-        panic!("Too many arguments. Try `cargo run $ARG` or `cargo run`\n");
+        return Err(Error::new(
+            ErrorKind::Other,
+            String::from("Too many arguments. Try `cargo run $ARG` or `cargo run`\n")
+        ));
+    } else if 2 > args.len() {
+        return Err(Error::new(
+            ErrorKind::Other,
+            String::from("Missing $ARG. Try `cargo run $ARG` or `cargo run`\n")
+        ));
     }
 
-    let file_name = match args.len() {
-        1 => String::new(),
-        2 => {
-            let file_path = path::absolute(&args[1])?;
-
-            file_path.display().to_string()
-        },
-
-        _ => panic!("Too many arguments. Try `cargo run $ARG` or `cargo run`\n"),
-    };
+    let file_name = path::absolute(&args[1])?
+        .display()
+        .to_string();
     
     let mut app = App::new(file_name);
     app.run()?;
