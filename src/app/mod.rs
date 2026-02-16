@@ -94,6 +94,7 @@ impl App {
 
         match event.code {
             KeyCode::Enter => self.state.add_line_break(),
+            KeyCode::Backspace => self.state.delete_last_character(),
             KeyCode::Char(character) => self.state.edit(character),
         
             _ => Ok(())

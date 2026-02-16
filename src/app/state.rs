@@ -71,4 +71,12 @@ impl State {
 
         Ok(())
     }
+
+    pub fn delete_last_character(&mut self) -> Result<()> {
+        if !self.content.is_empty() {
+            self.content.pop();
+        }
+
+        Ok(())
+    }
 }
